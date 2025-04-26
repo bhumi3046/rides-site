@@ -7,11 +7,9 @@
     <title>Wild Rydes</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="Serverless web application example">
-    <meta name="author" content="">
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
         integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://js.arcgis.com/4.6/esri/css/main.css">
     <link rel="stylesheet" href="/css/ride.css">
     <link rel="stylesheet" href="/css/message.css">
 
@@ -19,7 +17,7 @@
         .map-container {
             position: relative;
             width: 100%;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            padding-bottom: 56.25%;
             margin-top: 30px;
         }
 
@@ -64,9 +62,8 @@
             </div>
             <div class="panel-body">
                 <p>This page is not functional yet because there is no API invoke URL configured in <a
-                        href="/js/config.js">/js/config.js</a>. You'll configure this in Module 3.</p>
-                <p>In the meantime, if you'd like to test the Amazon Cognito user pool authorizer for your API, use the
-                    auth token below:</p>
+                        href="/js/config.js">/js/config.js</a>.</p>
+                <p>In the meantime, you can test with this auth token:</p>
                 <textarea class="authToken"></textarea>
             </div>
         </div>
@@ -79,24 +76,18 @@
                 <h3 class="panel-title">No Cognito User Pool Configured</h3>
             </div>
             <div class="panel-body">
-                <p>There is no user pool configured in <a href="/js/config.js">/js/config.js</a>. You'll configure this
-                    in Module 2 of the workshop.</p>
+                <p>You’ll configure this in <a href="/js/config.js">/js/config.js</a>.</p>
             </div>
         </div>
     </div>
 
-    <div id="main">
-        <div id="map"></div>
-    </div>
-
-    <!-- 🌍 Google Map Section -->
+    <!-- ✅ Only Google Map now -->
     <div class="container">
         <h3>Our Exact Location (Google Map)</h3>
         <div class="map-container">
             <iframe
                 src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d14030.943325469247!2d77.52754575!3d28.457378699999996!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sin!4v1745647783165!5m2!1sen!2sin"
-                allowfullscreen="" loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"></iframe>
+                allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
     </div>
 
@@ -104,8 +95,8 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                            aria-hidden="true">&times;</span></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
                     <h4 class="modal-title" id="myModalLabel">Your Auth Token</h4>
                 </div>
                 <div class="modal-body">
@@ -118,14 +109,13 @@
         </div>
     </div>
 
+    <!-- JS scripts -->
     <script src="js/vendor/jquery-3.1.0.js"></script>
     <script src="js/vendor/bootstrap.min.js"></script>
     <script src="js/vendor/aws-cognito-sdk.min.js"></script>
     <script src="js/vendor/amazon-cognito-identity.min.js"></script>
-    <script src="https://js.arcgis.com/4.6/"></script>
     <script src="js/config.js"></script>
     <script src="js/cognito-auth.js"></script>
-    <script src="js/esri-map.js"></script>
     <script src="js/ride.js"></script>
 </body>
 
