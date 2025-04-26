@@ -1,107 +1,78 @@
-/*global WildRydes _config*/
+/*global WildRydes*/
 
 var WildRydes = window.WildRydes || {};
 WildRydes.map = WildRydes.map || {};
 
-(function rideScopeWrapper($) {
-    var authToken;
-    WildRydes.authToken.then(function setAuthToken(token) {
-        if (token) {
-            authToken = token;
-        } else {
-            window.location.href = '/signin.html';
-        }
-    }).catch(function handleTokenError(error) {
-        alert(error);
-        window.location.href = '/signin.html';
+require([
+    'esri/Map',
+    'esri/views/MapView',
+    'esri/Graphic',
+    'esri/geometry/Point',
+    'esri/symbols/SimpleMarkerSymbol'
+], function (Map, MapView, Graphic, Point, SimpleMarkerSymbol) {
+
+    var map = new Map({
+        basemap: 'streets'
     });
-    function requestUnicorn(pickupLocation) {
-        $.ajax({
-            method: 'POST',
-            url: _config.api.invokeUrl + '/ride',
-            headers: {
-                Authorization: authToken
-            },
-            data: JSON.stringify({
-                PickupLocation: {
-                    Latitude: pickupLocation.latitude,
-                    Longitude: pickupLocation.longitude
-                }
-            }),
-            contentType: 'application/json',
-            success: completeRequest,
-            error: function ajaxError(jqXHR, textStatus, errorThrown) {
-                console.error('Error requesting ride: ', textStatus, ', Details: ', errorThrown);
-                console.error('Response: ', jqXHR.responseText);
-                alert('An error occured when requesting your unicorn:\n' + jqXHR.responseText);
-            }
-        });
-    }
 
-    function completeRequest(result) {
-        var unicorn;
-        var pronoun;
-        console.log('Response received from API: ', result);
-        unicorn = result.Unicorn;
-        pronoun = unicorn.Gender === 'Male' ? 'his' : 'her';
-        displayUpdate(unicorn.Name + ', your ' + unicorn.Color + ' unicorn, is on ' + pronoun + ' way.');
-        animateArrival(function animateCallback() {
-            displayUpdate(unicorn.Name + ' has arrived. Giddy up!');
-            WildRydes.map.unsetLocation();
-            $('#request').prop('disabled', 'disabled');
-            $('#request').text('Set Pickup');
-        });
-    }
+    var view = new MapView({
+        container: 'map',
+        map: map,
+        center: [77.52754575, 28.4573787], // Updated to your location
+        zoom: 14
+    });
 
-    // Register click handler for #request button
-    $(function onDocReady() {
-        $('#request').click(handleRequestClick);
-        $(WildRydes.map).on('pickupChange', handlePickupChanged);
+    WildRydes.map.center = {
+        latitude: 28.4573787,
+        longitude: 77.52754575
+    };
 
-        WildRydes.authToken.then(function updateAuthMessage(token) {
-            if (token) {
-                displayUpdate('You are authenticated. Click to see your <a href="#authTokenModal" data-toggle="modal">auth token</a>.');
-                $('.authToken').text(token);
-            }
-        });
+    WildRydes.map.extent = {
+        minLat: 28.45,
+        maxLat: 28.46,
+        minLng: 77.52,
+        maxLng: 77.54
+    };
 
-        if (!_config.api.invokeUrl) {
-            $('#noApiMessage').show();
+    var markerSymbol = new SimpleMarkerSymbol({
+        color: [226, 119, 40],
+        outline: {
+            color: [255, 255, 255],
+            width: 2
         }
     });
 
-    function handlePickupChanged() {
-        var requestButton = $('#request');
-        requestButton.text('Request Unicorn');
-        requestButton.prop('disabled', false);
-    }
+    WildRydes.map.selectedPoint = null;
 
-    function handleRequestClick(event) {
-        var pickupLocation = WildRydes.map.selectedPoint;
-        event.preventDefault();
-        requestUnicorn(pickupLocation);
-    }
+    view.on('click', function (event) {
+        var point = new Point({
+            longitude: event.mapPoint.longitude,
+            latitude: event.mapPoint.latitude
+        });
 
-    function animateArrival(callback) {
-        var dest = WildRydes.map.selectedPoint;
-        var origin = {};
+        var graphic = new Graphic({
+            geometry: point,
+            symbol: markerSymbol
+        });
 
-        if (dest.latitude > WildRydes.map.center.latitude) {
-            origin.latitude = WildRydes.map.extent.minLat;
-        } else {
-            origin.latitude = WildRydes.map.extent.maxLat;
-        }
+        view.graphics.removeAll();
+        view.graphics.add(graphic);
 
-        if (dest.longitude > WildRydes.map.center.longitude) {
-            origin.longitude = WildRydes.map.extent.minLng;
-        } else {
-            origin.longitude = WildRydes.map.extent.maxLng;
-        }
+        WildRydes.map.selectedPoint = {
+            latitude: point.latitude,
+            longitude: point.longitude
+        };
 
-        WildRydes.map.animate(origin, dest, callback);
-    }
+        $(WildRydes.map).trigger('pickupChange');
+    });
 
-    function displayUpdate(text) {
-        $('#updates').append($('<li>' + text + '</li>'));
-    }
-}(jQuery));
+    WildRydes.map.unsetLocation = function unsetLocation() {
+        view.graphics.removeAll();
+        WildRydes.map.selectedPoint = null;
+    };
+
+    WildRydes.map.animate = function animate(origin, dest, callback) {
+        // Dummy animation for now
+        callback();
+    };
+});
