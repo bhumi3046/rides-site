@@ -33,8 +33,7 @@
             border: 0;
         }
 
-        #googleMap {
-            width: 100%;
+        #mapView {
             height: 500px;
         }
     </style>
@@ -62,10 +61,10 @@
         </div>
     </div>
 
-    <!-- Updated Google Map Section -->
+    <!-- ArcGIS Map Section -->
     <div class="container">
-        <h3>Our Exact Location (Interactive Google Map)</h3>
-        <div id="googleMap"></div>
+        <h3>Our Exact Location (Interactive Map)</h3>
+        <div id="mapView"></div>
     </div>
 
     <!-- Modals for Auth Token -->
@@ -94,55 +93,78 @@
     <script src="js/vendor/amazon-cognito-identity.min.js"></script>
     <script src="https://js.arcgis.com/4.6/"></script>
 
-    <!-- Google Maps API -->
-    <script
-        src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"
-        async defer></script>
-
     <script src="js/config.js"></script>
     <script src="js/cognito-auth.js"></script>
     <script src="js/esri-map.js"></script>
     <script src="js/ride.js"></script>
 
     <script>
-        let map;
-        let marker;
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/Graphic",
+            "esri/geometry/Point",
+            "esri/symbols/SimpleMarkerSymbol",
+            "esri/geometry/SpatialReference",
+            "dojo/domReady!"
+        ], function (Map, MapView, Graphic, Point, SimpleMarkerSymbol, SpatialReference) {
 
-        // Initialize the map centered on Greater Noida
-        function initMap() {
-            const center = { lat: 28.4573787, lng: 77.52754575 }; // Greater Noida
+            // Coordinates for Greater Noida
+            var center = { lat: 28.4573787, lng: 77.52754575 };
 
-            // Create the map centered around Greater Noida
-            map = new google.maps.Map(document.getElementById("googleMap"), {
-                zoom: 14,
-                center: center,
+            // Create the map
+            var map = new Map({
+                basemap: "streets-navigation-vector"  // You can choose any basemap you prefer
             });
 
-            // Add a click listener to set pickup location
-            map.addListener("click", (e) => {
-                const location = {
-                    latitude: e.latLng.lat(),
-                    longitude: e.latLng.lng()
-                };
+            // Create the map view
+            var view = new MapView({
+                container: "mapView", // The div ID where the map will be rendered
+                map: map,
+                center: [center.lng, center.lat], // Set center of map to Greater Noida
+                zoom: 14
+            });
 
-                // Show the marker on the map where the user clicked
-                if (marker) {
-                    marker.setPosition(e.latLng);
-                } else {
-                    marker = new google.maps.Marker({
-                        position: e.latLng,
-                        map: map,
-                    });
+            // Create a marker symbol for the pickup location
+            var markerSymbol = new SimpleMarkerSymbol({
+                color: [226, 119, 40], // Orange color
+                size: 10,
+                outline: {
+                    color: [255, 255, 255],
+                    width: 1
                 }
+            });
 
-                // Save the location to WildRydes for pickup
-                WildRydes.map.selectedPoint = location;
+            // Event listener to handle click on the map and set the pickup location
+            view.on("click", function (event) {
+                var point = new Point({
+                    longitude: event.mapPoint.longitude,
+                    latitude: event.mapPoint.latitude,
+                    spatialReference: new SpatialReference({ wkid: 4326 })
+                });
+
+                // Create a graphic (marker) at the clicked point
+                var pointGraphic = new Graphic({
+                    geometry: point,
+                    symbol: markerSymbol
+                });
+
+                // Add the marker to the map
+                view.graphics.removeAll();
+                view.graphics.add(pointGraphic);
+
+                // Save the location for pickup
+                WildRydes.map.selectedPoint = {
+                    latitude: point.latitude,
+                    longitude: point.longitude
+                };
 
                 // Enable the request button
                 $('#request').prop('disabled', false);
                 $('#request').text('Request Unicorn');
             });
-        }
+
+        });
 
         // Request Unicorn function (connected to API call)
         function requestUnicorn(pickupLocation) {
@@ -196,6 +218,7 @@
             $('#updates').append($('<li>' + text + '</li>'));
         }
     </script>
+
 </body>
 
 </html>
